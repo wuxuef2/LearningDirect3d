@@ -45,5 +45,6 @@ struct MeshData
 class GeometryGenerator
 {
 public:
-    static void generatorCylinder(MeshData cylinder, float topRadius, float bottomRadius, float height, uint32 sliceCount, uint32 stackCount);
+    static void generatorCylinder(MeshData& cylinder, float topRadius, float bottomRadius, float height, uint32 sliceCount, uint32 stackCount);
+    static void generatorCircle(MeshData& cylinder, float radius, float height, uint32 sliceCount, float normalY);
 };
