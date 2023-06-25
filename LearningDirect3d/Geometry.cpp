@@ -80,3 +80,60 @@ void GeometryGenerator::generatorCircle(MeshData& cylinder, float radius, float 
 		cylinder.Indices32.push_back(base + j + 1);
 	}
 }
+
+void GeometryGenerator::subdivide(MeshData& meshData)
+{
+	for (int i = 0; i < meshData.Indices32.size(); i += 3) 
+	{
+		DirectX::XMVECTOR v0 = DirectX::XMLoadFloat3(&(meshData.Vertices.at(i).Position));
+		DirectX::XMVECTOR v1 = DirectX::XMLoadFloat3(&(meshData.Vertices.at(i + 1).Position));
+		DirectX::XMVECTOR v2 = DirectX::XMLoadFloat3(&(meshData.Vertices.at(i + 2).Position));
+
+		DirectX::XMVECTOR m01 = DirectX::XMVectorScale(DirectX::XMVectorAdd(v0, v1), 0.5);
+		DirectX::XMVECTOR m02 = DirectX::XMVectorScale(DirectX::XMVectorAdd(v0, v2), 0.5);
+		DirectX::XMVECTOR m12 = DirectX::XMVectorScale(DirectX::XMVectorAdd(v1, v2), 0.5);
+
+		Vertex vert01;
+		DirectX::XMStoreFloat3(&vert01.Position, m01);
+		meshData.Vertices.push_back(std::move(vert01));
+
+		Vertex vert02;
+		DirectX::XMStoreFloat3(&vert02.Position, m02);
+		meshData.Vertices.push_back(std::move(vert02));
+
+		Vertex vert12;
+		DirectX::XMStoreFloat3(&vert12.Position, m12);
+		meshData.Vertices.push_back(std::move(vert12));
+	}
+}
+
+void GeometryGenerator::generatorGeosphere(MeshData& geosphere, float radius, uint32 numSubdivisions)
+{
+	const float X = 0.525731f;
+	const float Z = 0.850651f;
+
+	DirectX::XMFLOAT3 pos[12] =
+	{
+		DirectX::XMFLOAT3(-X, 0.0f, Z),  DirectX::XMFLOAT3(-X, 0.0f, Z),
+		DirectX::XMFLOAT3(-X, 0.0f, -Z), DirectX::XMFLOAT3(X, 0.0f, -Z),
+		DirectX::XMFLOAT3(0.0f, Z, X),   DirectX::XMFLOAT3(0.0f, Z, -X),
+		DirectX::XMFLOAT3(0.0f, -Z, X),  DirectX::XMFLOAT3(0.0f, -Z, -X),
+		DirectX::XMFLOAT3(Z, X, 0.0f),   DirectX::XMFLOAT3(-Z, X, 0.0f),
+		DirectX::XMFLOAT3(Z, -X, 0.0f),  DirectX::XMFLOAT3(-Z, -X, 0.0f),
+	};
+
+	geosphere.Indices32 =
+	{
+		1, 4, 0,	4, 9, 0,	4, 5, 9,	8, 5, 4,	1, 8, 4,
+		1, 10, 8,	10, 3, 8,	8, 3, 5,	3, 2, 5,	3, 7, 2,
+		3, 10, 7,	10, 6, 7,	6, 11, 7,	6, 0, 11,	6, 1, 0,
+		10, 1, 6,	11, 0, 9,	2, 11, 9,	5, 2, 9,	11, 2, 7
+	};
+
+	for (auto p : pos)
+	{
+		Vertex vect;
+		vect.Position = p;
+		geosphere.Vertices.push_back(std::move(vect));
+	}
+}
