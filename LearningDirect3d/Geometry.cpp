@@ -83,11 +83,14 @@ void GeometryGenerator::generatorCircle(MeshData& cylinder, float radius, float 
 
 void GeometryGenerator::subdivide(MeshData& meshData)
 {
-	for (int i = 0; i < meshData.Indices32.size(); i += 3) 
+	auto indices = std::move(meshData.Indices32);
+	meshData.Indices32 = std::vector<uint32>();
+	uint32 size = indices.size();
+	for (uint32 i = 0; i < size; i += 3) 
 	{
-		DirectX::XMVECTOR v0 = DirectX::XMLoadFloat3(&(meshData.Vertices.at(i).Position));
-		DirectX::XMVECTOR v1 = DirectX::XMLoadFloat3(&(meshData.Vertices.at(i + 1).Position));
-		DirectX::XMVECTOR v2 = DirectX::XMLoadFloat3(&(meshData.Vertices.at(i + 2).Position));
+		DirectX::XMVECTOR v0 = DirectX::XMLoadFloat3(&(meshData.Vertices.at(indices[i]).Position));
+		DirectX::XMVECTOR v1 = DirectX::XMLoadFloat3(&(meshData.Vertices.at(indices[i + 1]).Position));
+		DirectX::XMVECTOR v2 = DirectX::XMLoadFloat3(&(meshData.Vertices.at(indices[i + 2]).Position));
 
 		DirectX::XMVECTOR m01 = DirectX::XMVectorScale(DirectX::XMVectorAdd(v0, v1), 0.5);
 		DirectX::XMVECTOR m02 = DirectX::XMVectorScale(DirectX::XMVectorAdd(v0, v2), 0.5);
@@ -104,7 +107,24 @@ void GeometryGenerator::subdivide(MeshData& meshData)
 		Vertex vert12;
 		DirectX::XMStoreFloat3(&vert12.Position, m12);
 		meshData.Vertices.push_back(std::move(vert12));
+
+		meshData.Indices32.push_back(indices[i]);
+		meshData.Indices32.push_back(size + i + 1);
+		meshData.Indices32.push_back(size + i);
+
+		meshData.Indices32.push_back(size + i + 1);
+		meshData.Indices32.push_back(indices[i + 2]);
+		meshData.Indices32.push_back(size + i + 2);
+
+		meshData.Indices32.push_back(size + i);
+		meshData.Indices32.push_back(size + i + 2);
+		meshData.Indices32.push_back(indices[i + 1]);
+
+		meshData.Indices32.push_back(size + i);
+		meshData.Indices32.push_back(size + i + 1);
+		meshData.Indices32.push_back(size + i + 2);
 	}
+
 }
 
 void GeometryGenerator::generatorGeosphere(MeshData& geosphere, float radius, uint32 numSubdivisions)
@@ -135,5 +155,10 @@ void GeometryGenerator::generatorGeosphere(MeshData& geosphere, float radius, ui
 		Vertex vect;
 		vect.Position = p;
 		geosphere.Vertices.push_back(std::move(vect));
+	}
+
+	for (uint32 i = 0; i < numSubdivisions; i++)
+	{
+		subdivide(geosphere);
 	}
 }
